@@ -3,8 +3,7 @@ if config.get("paternal_short") and config.get("maternal_short"):
     include: f"{workflow.basedir}/rules/yak.db.smk"
 
 
-
-if config.get("hifi") and not config.get("short") and not config.get("ont") and not config.get("correction"):
+if config.get("hifi") and not config.get("paternal_short") and not config.get("ont") and not config.get("correction"):
     rule hifiasm:
         input:
             hifi = get_files(config["hifi"])
@@ -14,17 +13,19 @@ if config.get("hifi") and not config.get("short") and not config.get("ont") and 
             config["hifiasm"]["cores"]
         resources:
             mem = config["hifiasm"]["mem"]
+        singularity:
+            config["singularity"]
         shell:
             """
             rm -rf hifiasm
             mkdir -p hifiasm
             cd hifiasm
-            hifiasm -o hifiasm -t {threads} --ul ont.combined.fastq {input.hifi}
+            hifiasm -o hifiasm -t {threads} {input.hifi}
             awk '/^S/ {{split($4,a,":"); print ">" $2; print $3}}' *.p_utg.gfa > ../assembly.fasta
             """
 
 
-if config.get("hifi") and not config.get("short") and config.get("ont") and not config.get("correction"):
+if config.get("hifi") and not config.get("paternal_short") and config.get("ont") and not config.get("correction"):
     rule hifiasm:
         input:
             ont = get_files(config["ont"]),
@@ -72,7 +73,7 @@ if config.get("hifi") and not config.get("short") and config.get("ont") and not 
             """
 
 
-if config.get("hifi") and config.get("short") and not config.get("ont") and not config.get("correction"):
+if config.get("hifi") and config.get("paternal_short") and config.get("maternal_short") and not config.get("ont") and not config.get("correction"):
     rule hifiasm:
         input:
             hifi = get_files(config["hifi"]),
@@ -95,7 +96,7 @@ if config.get("hifi") and config.get("short") and not config.get("ont") and not 
             awk '/^S/ {{split($4,a,":"); print ">" $2; print $3}}' *.p_utg.gfa > ../assembly.fasta
             """
 
-if config.get("hifi") and config.get("short") and config.get("ont") and not config.get("correction"):
+if config.get("hifi") and config.get("paternal_short") and config.get("maternal_short") and config.get("ont") and not config.get("correction"):
     rule hifiasm:
         input:
             ont = get_files(config["ont"]),
@@ -148,7 +149,7 @@ if config.get("hifi") and config.get("short") and config.get("ont") and not conf
 ## rules with correction 
 ###################################################################################
 
-if config.get("hifi") and not config.get("short") and config.get("ont") and config.get("correction"):
+if config.get("hifi") and not config.get("paternal_short") and config.get("ont") and config.get("correction"):
     rule hifiasm:
         input:
             ont = "ont.corrected.fastq",
@@ -172,7 +173,7 @@ if config.get("hifi") and not config.get("short") and config.get("ont") and conf
 
 
 
-if config.get("hifi") and config.get("short") and config.get("ont") and config.get("correction"):
+if config.get("hifi") and config.get("paternal_short") and config.get("maternal_short") and config.get("ont") and config.get("correction"):
     rule hifiasm:
         input:
             ont = "ont.corrected.fastq",
@@ -195,6 +196,3 @@ if config.get("hifi") and config.get("short") and config.get("ont") and config.g
             hifiasm -o hifiasm -t {threads} --ul ../{input.ont} -1 ../{input.phapmers} -2 ../{input.mhapmers} {input.hifi}
             awk '/^S/ {{split($4,a,":"); print ">" $2; print $3}}' *.p_utg.gfa > ../assembly.fasta
             """
-
-
-
